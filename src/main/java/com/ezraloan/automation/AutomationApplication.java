@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @SpringBootApplication
 @EnableScheduling
 @EnableWebSecurity
-//@EnableSwagger2
 public class AutomationApplication {
 
 	public static void main(String[] args) {
