@@ -24,7 +24,9 @@ TECHNOLOGY USED
 
 5. Mockito - For writing unit tests and mocking data
 
-6. Java 8 and above features
+6. Docker - For packaging the application.()
+
+7. Java 8 and above features
 - CompletableFuture API - this was necesary to perform parallel operations on different threads and receive a
   response once a thread is done. That is, multithreading.
   -Use of Record instead of a class was handy especially to reduce boilerplate code through creating constructors
