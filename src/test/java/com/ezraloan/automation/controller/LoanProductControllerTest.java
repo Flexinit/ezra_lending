@@ -44,19 +44,7 @@ class LoanProductControllerTest {
     @Test
     @Disabled("TODO: Complete this test")
     void testCreateNewLoanProduct() {
-        //   Diffblue Cover was unable to write a Spring test,
-        //   so wrote a non-Spring test instead.
-        //   Diffblue AI was unable to find a test
 
-        // TODO: Complete this test.
-        //   Reason: R013 No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   java.lang.NullPointerException: Cannot invoke "org.springframework.security.core.Authentication.getName()" because "authentication" is null
-        //       at com.ezraloan.automation.Utils.APIUtils.lambda$static$0(APIUtils.java:18)
-        //       at com.ezraloan.automation.service.LoanProductService.createNewLoanProduct(LoanProductService.java:20)
-        //       at com.ezraloan.automation.controller.LoanProductController.createNewLoanProduct(LoanProductController.java:16)
-        //   See https://diff.blue/R013 to resolve this issue.
 
         LoanProductController loanProductController = new LoanProductController(new LoanProductService());
 
@@ -82,9 +70,7 @@ class LoanProductControllerTest {
      */
     @Test
     void testCreateNewLoanProduct2() {
-        //   Diffblue Cover was unable to write a Spring test,
-        //   so wrote a non-Spring test instead.
-        //   Diffblue AI was unable to find a test
+
 
         LoanProduct loanProduct = new LoanProduct();
         loanProduct.setCode("Code");
