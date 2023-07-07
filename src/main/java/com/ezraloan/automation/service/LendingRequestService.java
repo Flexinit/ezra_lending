@@ -32,7 +32,9 @@ public class LendingRequestService{
         String msisdn = subscriber.get().getMsisdn();
 
         lendingRequest.setCreatedBy(APIUtils.getLoggedInUser.get());
-        APIUtils.sendSMS(msisdn,name,lendingRequest.getAmountDue());
+
+        //Send SMS
+        //APIUtils.sendSMS(msisdn,name,lendingRequest.getAmountDue());
 
         return Optional.ofNullable(lendingRequestRepository.save(lendingRequest));
     }

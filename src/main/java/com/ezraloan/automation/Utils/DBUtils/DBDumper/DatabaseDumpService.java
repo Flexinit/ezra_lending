@@ -1,4 +1,4 @@
-package com.ezraloan.automation.Utils.DBDumper;
+package com.ezraloan.automation.Utils.DBUtils.DBDumper;
 
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +40,7 @@ public class DatabaseDumpService {
 
     public void generateAndTransferDatabaseDump() {
         // Generate the database dump
+        generateDatabaseDump();
         String dumpFilePath = generateDatabaseDump();
         // Transfer the dump file to the SFTP server
        // transferDumpFileToSftp(dumpFilePath);
@@ -51,10 +52,11 @@ public class DatabaseDumpService {
     private String generateDatabaseDump() {
         // Construct the command to generate the database dump using the 'pg_dump' command
         String dumpFilePath = dumpDirectory + dbName;
-        String command = String.format("pg_dump -U %s -d %s -f %s", databaseUsername, databaseUrl, dumpFilePath);
+        String command = String.format("pg_dump --host=localhost --port=5433 -U %s -d %s -f %s", databaseUsername, dbName, dumpFilePath);
         
         try {
             // Execute the command
+            log.info("DB Dump Service Running");
             Process process = Runtime.getRuntime().exec(command);
             int exitCode = process.waitFor();
             

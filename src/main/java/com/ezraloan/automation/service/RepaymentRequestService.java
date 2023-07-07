@@ -36,6 +36,7 @@ public class RepaymentRequestService{
         float amntDue = request.get().getAmountDue();
         float remainingAmount = amntDue - repaymentRequest.getAmountPaid();
         request.get().setAmountDue(remainingAmount);
+        repaymentRequest.setAmountDue(remainingAmount);
 
         String loanApplicantFirstName = subscriberRepository.findById(request.get().getSubscriberId())
                 .stream().findFirst()
@@ -52,10 +53,11 @@ public class RepaymentRequestService{
                 .get()
                 .getMsisdn();
 
-        String name = "Dear "+loanApplicantFirstName+ " "+loanApplicantLastName+ " \n";
+        String name = loanApplicantFirstName+ " "+loanApplicantLastName+ " \n";
 
-        //Simulate sending SMS
-        APIUtils.sendSMS(msisdn, name,  amntDue, remainingAmount);
+        //SEND SMS ASYNCHRONOUSLY
+       // APIUtils.sendSMS(msisdn, name,  amntDue, remainingAmount);
+        lendingRequestRepository.save(request.get());
 
         return Optional.of(repaymentRequestRepository.save(repaymentRequest));
     }

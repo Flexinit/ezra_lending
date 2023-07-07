@@ -2,13 +2,15 @@ package com.ezraloan.automation.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.Hidden;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Date;
+
+@ToString
 @Getter
 @Setter
 @Entity
@@ -43,12 +45,20 @@ public class LendingRequest {
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
     public LocalDate createdAt;
+    @Hidden
     public String createdBy;
+    @Hidden
     public String updatedBy;
+    @Hidden
     public Date updatedAt;
 
+    @Hidden
+    @Value("${myapp.feature.enabled:false}")
     public Boolean archived; //Used to mean deleted/ sweeped due to defaulting of repayment
+
+    @Hidden
     public Date archiveDate;
+    @Hidden
     public String archivedBy;
 
 }

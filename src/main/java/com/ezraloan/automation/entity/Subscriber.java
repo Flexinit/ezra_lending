@@ -30,9 +30,9 @@ public class Subscriber {
             generator = "subscriber_sequence"
     )
 
-    @Hidden
+    //@Hidden
     public Long id;
-    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid MSISDN")
+    @Pattern(regexp = "^254\\\\d{9}$", message = "Invalid MSISDN")
     public String msisdn;
     public String firstName;
     public String lastName;
