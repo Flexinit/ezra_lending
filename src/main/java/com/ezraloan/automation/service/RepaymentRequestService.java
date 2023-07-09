@@ -56,7 +56,7 @@ public class RepaymentRequestService{
         String name = loanApplicantFirstName+ " "+loanApplicantLastName+ " \n";
 
         //SEND SMS ASYNCHRONOUSLY
-       // APIUtils.sendSMS(msisdn, name,  amntDue, remainingAmount);
+        APIUtils.sendSMS(msisdn, name,  amntDue, remainingAmount);
         lendingRequestRepository.save(request.get());
 
         return Optional.of(repaymentRequestRepository.save(repaymentRequest));

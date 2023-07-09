@@ -36,7 +36,7 @@ public class DatabaseDumper {
                 } else {
                     log.info("Database backup failed with exit code: " + exitCode);
                 }
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 log.error("Interrupted while waiting for the process to complete.");
                 Thread.currentThread().interrupt();
             }
