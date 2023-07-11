@@ -5,6 +5,7 @@ import com.ezraloan.automation.entity.LendingRequest;
 import com.ezraloan.automation.entity.Subscriber;
 import com.ezraloan.automation.repository.LendingRequestRepository;
 import com.ezraloan.automation.repository.SubscriberRepository;
+import kotlin.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,20 +28,36 @@ public class LendingRequestService{
         @Autowired
         private SubscriberRepository subscriberRepository;
 
-    public Optional<LendingRequest> applyForLoan(LendingRequest lendingRequest) {
-        Optional<Subscriber> subscriber = Optional.of(subscriberRepository.findById(lendingRequest.getSubscriberId())
-                .stream().findFirst()
-                .orElseThrow(()-> new IllegalStateException("Please register as a Subscriber before you can take a loan")));
-        String name = subscriber.get().getFirstName() + " " +subscriber.get().getLastName();
-        String msisdn = subscriber.get().getMsisdn();
+    public CompletableFuture<Optional<LendingRequest>> applyForLoan(LendingRequest lendingRequest) {
 
-        lendingRequest.setCreatedBy(APIUtils.getLoggedInUser.get());
+        //Check if Subscriber Exists
+        CompletableFuture<Optional<Subscriber>> subscriberFuture = CompletableFuture.supplyAsync(() ->
+                Optional.of(subscriberRepository.findById(lendingRequest.getSubscriberId())
+                        .stream().findFirst()
+                        .orElseThrow(() -> new IllegalStateException("Please register as a Subscriber before you can take a loan")))
+        );
 
-        //Send SMS
-        APIUtils.sendSMS(msisdn,name,lendingRequest.getAmountDue());
+        //Declarative Function within a function
+        Function<Optional<Subscriber>, Pair<String, String>> processSubscriber = subscriberOptional -> {
+            Subscriber subscriber = subscriberOptional.orElseThrow(() -> new IllegalStateException("Subscriber not found"));
+            String name = subscriber.getFirstName() + " " + subscriber.getLastName();
+            String msisdn = subscriber.getMsisdn();
+            return new Pair<>(name, msisdn);
+        };
 
-        return Optional.ofNullable(lendingRequestRepository.save(lendingRequest));
+        //Execute get First Name and last Name
+        CompletableFuture<Pair<String, String>> nameAndMsisdnFuture = subscriberFuture.thenApplyAsync(processSubscriber);
+
+        BiConsumer<String, String> sendSMS = (name, msisdn) ->
+                APIUtils.sendSMS(msisdn, name, lendingRequest.getAmountDue());
+
+        CompletableFuture<Void> smsFuture = nameAndMsisdnFuture.thenAcceptAsync(pair -> sendSMS.accept(pair.getFirst(), pair.getSecond()));
+
+        return smsFuture.thenApplyAsync(voidResult ->
+                Optional.ofNullable(lendingRequestRepository.save(lendingRequest))
+        );
     }
+
 
     public Optional<List<LendingRequest>> getLendingRequests(Long lendingRequestId) {
         if (lendingRequestId != null) {

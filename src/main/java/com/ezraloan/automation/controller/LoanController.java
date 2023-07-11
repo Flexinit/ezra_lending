@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
@@ -16,7 +17,7 @@ import java.util.Optional;
 public record LoanController(LendingRequestService lendingRequestService, RepaymentRequestService repaymentRequestService) {
 
     @PostMapping
-    public Optional<LendingRequest> applyForLoan(@RequestBody LendingRequest lendingRequest) {
+    public CompletableFuture<Optional<LendingRequest>> applyForLoan(@RequestBody LendingRequest lendingRequest) {
         log.info("making lending request {}", lendingRequest);
         return lendingRequestService.applyForLoan(lendingRequest);
     }
@@ -38,7 +39,7 @@ public record LoanController(LendingRequestService lendingRequestService, Repaym
 
     //Loan Repayment
     @PostMapping("/repay_loan")
-    public Optional<RepaymentRequest> repayLoan(@RequestBody RepaymentRequest repaymentRequest){
+    public CompletableFuture<Optional<RepaymentRequest>> repayLoan(@RequestBody RepaymentRequest repaymentRequest){
         log.info("making repayment request {}", repaymentRequest);
         return repaymentRequestService.repayLoan(repaymentRequest);
     }

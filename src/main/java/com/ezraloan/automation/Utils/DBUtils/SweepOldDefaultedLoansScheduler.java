@@ -20,7 +20,7 @@ public record SweepOldDefaultedLoansScheduler(LendingRequestService lendingReque
 
 
     //@Scheduled(cron = "0 0 0 1 * ?") // Runs at midnight on the 1st day of every month
-    @Scheduled(fixedRate = 5000)// Runs every 500 seconds
+    @Scheduled(fixedRate = 5000)// Runs every 5 seconds
     public void clearOldDefaultedLoans() {
 
         // Filter Old Defaulted Loans

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 @Service
 public class RepaymentRequestService{
@@ -25,41 +27,57 @@ public class RepaymentRequestService{
 
 
     @Transactional
-    public Optional<RepaymentRequest> repayLoan(RepaymentRequest repaymentRequest) {
+    public CompletableFuture<Optional<RepaymentRequest>> repayLoan(RepaymentRequest repaymentRequest) {
 
-        Optional<LendingRequest> request = Optional.of(lendingRequestRepository.
-                findById(repaymentRequest.getLendingRequestId())
-                .stream().findFirst()
-                .orElseThrow(() -> new IllegalStateException("The Lending Request with Id: " + repaymentRequest.getLendingRequestId() +
-                        " Does Not Exist")));
+        //Get the Lending request from db if exists
+        CompletableFuture<Optional<LendingRequest>> lendingRequestFuture = CompletableFuture.supplyAsync(() ->
+                Optional.of(lendingRequestRepository.findById(repaymentRequest.getLendingRequestId())
+                        .stream().findFirst()
+                        .orElseThrow(() -> new IllegalStateException("The Lending Request with Id: " + repaymentRequest.getLendingRequestId() +
+                                " Does Not Exist")))
+        );
 
-        float amntDue = request.get().getAmountDue();
-        float remainingAmount = amntDue - repaymentRequest.getAmountPaid();
-        request.get().setAmountDue(remainingAmount);
-        repaymentRequest.setAmountDue(remainingAmount);
+        CompletableFuture<Optional<RepaymentRequest>> resultFuture = lendingRequestFuture.thenApplyAsync(lendingRequestOptional -> {
+            LendingRequest lendingRequest = lendingRequestOptional.orElseThrow(() -> new IllegalStateException("Lending Request not found"));
 
-        String loanApplicantFirstName = subscriberRepository.findById(request.get().getSubscriberId())
-                .stream().findFirst()
-                .get()
-                .getFirstName();
+            float amntDue = lendingRequest.getAmountDue();
+            float remainingAmount = (amntDue - repaymentRequest.getAmountPaid());
+            lendingRequest.setAmountDue(remainingAmount);
+            repaymentRequest.setAmountDue(remainingAmount);
 
-        String loanApplicantLastName = subscriberRepository.findById(request.get().getSubscriberId())
-                .stream().findFirst()
-                .get()
-                .getLastName();
 
-        String msisdn = subscriberRepository.findById(request.get().getSubscriberId())
-                .stream().findFirst()
-                .get()
-                .getMsisdn();
 
-        String name = loanApplicantFirstName+ " "+loanApplicantLastName+ " \n";
+            //Get First name
+           Supplier<String> firstName  = () -> subscriberRepository.findById(lendingRequest.getSubscriberId())
+                    .stream().findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Subscriber not found"))
+                    .getFirstName();
 
-        //SEND SMS ASYNCHRONOUSLY
-        APIUtils.sendSMS(msisdn, name,  amntDue, remainingAmount);
-        lendingRequestRepository.save(request.get());
 
-        return Optional.of(repaymentRequestRepository.save(repaymentRequest));
+           //Get Last Name
+            Supplier<String>   loanApplicantLastName = ()-> subscriberRepository.findById(lendingRequest.getSubscriberId())
+                    .stream().findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Subscriber not found"))
+                    .getLastName();
+
+            //Get MSISDN
+            Supplier<String> msisdn = () -> subscriberRepository.findById(lendingRequest.getSubscriberId())
+                    .stream().findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Subscriber not found"))
+                    .getMsisdn()
+                    ;
+
+            String name = firstName.get() + " " + loanApplicantLastName.get() + " \n";
+
+            //SEND SMS Using Completable Future
+            CompletableFuture.runAsync(() -> APIUtils.sendSMS(msisdn.get(), name, amntDue, remainingAmount))
+                    .thenRunAsync(() ->lendingRequestRepository.save(lendingRequest));
+
+            return Optional.of(repaymentRequestRepository.save(repaymentRequest));
+        });
+
+        return resultFuture;
     }
+
 }
 
